@@ -161,12 +161,11 @@ while jugar:
                     if rect_raton.colliderect(columna):
                         pygame.draw.rect(pantalla,eval(color_seleccionado),columna)#pinta del color el cuadro que colisiona con el click del raton
                         lienzo.editar_imagen(numcolumna,numfila,id_seleccionado)#modifica la matriz de 0 con el id correspodiente al color
-            
+                        print(lienzo.matriz)#ver matriz
             for elemento in objetos_colores:# seleccion de color con raton
                 if rect_raton.colliderect( elemento.devolver_rect() ): #si se selecciona
                     color_seleccionado = elemento.color #Variable global color_seleccionado cambia al color que se selecciono,ver lista objetos colores
                     id_seleccionado = elemento.id #Variable global id_seleccionado cambia al id del color que se selecciono
-        
     for elemento in objetos_colores: #generar cuadro de colores
         elemento.generar_cuadro()
 
