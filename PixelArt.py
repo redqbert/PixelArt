@@ -3,11 +3,14 @@ import pygame
 
 pygame.init()
 
+
 # Area variables globales
 tamaño_cuadros = 32 #Pixeles c/u
 comienzo_dibujar_cuadrosx = tamaño_cuadros * 6 #Lugar donde se empiezan a generar los cuadros x
 comienzo_dibujar_cuadrosy = tamaño_cuadros * 3 #Lugar donde se empiezan a generar los cuadros y 
 rect_raton = pygame.Rect(0,0,5,5) #el rect que sigue al raton
+
+fuente = pygame.font.SysFont("Calibri", 17) #Tipo de fuente para el texto
 
 gris = (220,220,220)
 amarillo = (255,242,0 )
@@ -55,12 +58,20 @@ class Editor():
     creador = ""
     estado_programa = ""
     estilo_imagen = ""
+    archivo_en_uso = ""
+    nombre_archivo = ""
+    numero_de_archivos = 0
+
     #Falta agregar metodos
 
-    def __init__(self, creador, estado_programa, estilo_imagen):
+    def __init__(self, creador, estado_programa, estilo_imagen, archivo_en_uso, nombre_archivo, numero_de_archivos):
         self.creador = creador
         self.estado_programa = "Creado"
         self.estilo_imagen = estilo_imagen
+        self.archivo_en_uso = archivo_en_uso
+        self.nombre_archivo = "Epitome_del_arte_"
+        self.numero_de_archivos = 0
+
 
     def estado_en_ejecucion(self):
         if self.estado_programa == "Creado":
@@ -71,7 +82,26 @@ class Editor():
 
         elif self.estado_programa == "Terminado":
             pass
+
+    def crear_archivos(self):
+        nombre = (self.nombre_archivo + str(self.numero_de_archivos))+".txt" #Crea un nombre nuevo con los parametros guardador y un nuevo nombre
+        open(nombre, 'w') #Crea un archivo
+        self.archivo_en_uso = nombre #Cambia el nombre guardado
+        self.numero_de_archivos += 1 
     
+    def guardar_archivo(self):
+        if not self.archivo_en_uso == "Epitome_del_arte_": #Verifica si ya se modifico que nombre original con la creacion de un archivo de texto
+            nombre = self.archivo_en_uso
+            nombre.write() #Aqui solo se necesita colocar la matriz modificada, dentro del parentesis
+#-------------------------------------------------------------------------------------------------------!           
+#                                                                                                       !
+#Podrias modificar la matriz dentro de la clase Editor? De esa manera solo se escribe aqui y ya         !
+#                                                                                                       !
+#-------------------------------------------------------------------------------------------------------!
+
+    def acceder_archivos(self):
+        pass
+
     def editar_imagen(self, x, y, valorid): #Cambia un valor de la matriz
         self.matriz[x][y] = valorid
 #######################################
@@ -130,7 +160,7 @@ class Color: #Genera los colores junto con su colision correspondiente con el ra
         return self.rect
 
 # Iniciar objetos
-lienzo = Editor("", "Default", "Default")
+lienzo = Editor("", "Default", "Default", "", "Epitome_del_arte_", 0)
 
 #Color parametros: nombre,id,tamanio,posicion x(se multiiplica por el tamanio del cuadro), posicion y
 colores = [['amarillo',2,2,1,2 ],
@@ -149,7 +179,33 @@ for fila in colores:#cargar los colroes en pantalla
     color = Color(f'colores/{fila[0]}.png',fila[1],fila[2],fila[3],fila[4],fila[0]) #Colores objetos
     objetos_colores.append(color)
 
+#Localizacion y medidas de los botones
+boton_guardar_archivo =  150,510,120,70
+boton_archivo_nuevo =  300,510,120,70
+boton_cargar_archivo =  450,510,120,70
+
+#Texto y fuente para los botones
+texto_guardar = fuente.render("Guardar archivo", True, blanco)
+texto_nuevo = fuente.render("Nuevo archivo", True, blanco)
+texto_cargar = fuente.render("Cargar archivo", True, blanco)
+
+
 while jugar:
+
+    #Rectangulos de los botones de guardar, crear un nuevo archivo y cargar
+    boton_guardar =  pygame.draw.rect(pantalla,gris, boton_guardar_archivo )
+    boton_nuevo = pygame.draw.rect(pantalla,gris, boton_archivo_nuevo )
+    boton_cargar = pygame.draw.rect(pantalla,gris, boton_cargar_archivo )
+
+    #Implementacion del texto en los botones
+    pantalla.blit(texto_guardar,( 157,537 ))
+    pantalla.blit(texto_nuevo, ( 310, 537 ))
+    pantalla.blit(texto_cargar,( 460,537 ))
+    
+    #Logica
+    posicion_raton = pygame.mouse.get_pos()
+    rect_raton.center = posicion_raton #colocar el Rectangulo para el raton encima del raton
+    
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -166,13 +222,23 @@ while jugar:
                 if rect_raton.colliderect( elemento.devolver_rect() ): #si se selecciona
                     color_seleccionado = elemento.color #Variable global color_seleccionado cambia al color que se selecciono,ver lista objetos colores
                     id_seleccionado = elemento.id #Variable global id_seleccionado cambia al id del color que se selecciono
+        
+            #Interacciones con los botones de guardar, cargar y crear
+
+            if boton_guardar.collidepoint(posicion_raton):
+                Editor.guardar_archivo()
+            if boton_nuevo.collidepoint(posicion_raton):
+                Editor.crear_archivos()
+            if boton_cargar.collidepoint(posicion_raton):
+                Editor.acceder_archivos()
+
+
+
+    
     for elemento in objetos_colores: #generar cuadro de colores
         elemento.generar_cuadro()
 
-    # Logica
-    posicion_raton = pygame.mouse.get_pos()
-    rect_raton.center = posicion_raton #colocar el Rectangulo para el raton encima del raton
-    
+
     if estado == 'pintar en lienzo':    #Generador de cuadros de matriz en pantalla
         pantalla.fill((245,245,245))
         print(lienzo.matriz)
