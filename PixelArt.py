@@ -92,7 +92,9 @@ class Editor():
     def guardar_archivo(self):
         if not self.archivo_en_uso == "Epitome_del_arte_": #Verifica si ya se modifico que nombre original con la creacion de un archivo de texto
             nombre = self.archivo_en_uso
-            nombre.write() #Aqui solo se necesita colocar la matriz modificada, dentro del parentesis
+            with open(nombre, 'w') as old_archivo:
+                pass
+            nombre.write(self.matriz)
 #-------------------------------------------------------------------------------------------------------!           
 #                                                                                                       !
 #Podrias modificar la matriz dentro de la clase Editor? De esa manera solo se escribe aqui y ya         !
