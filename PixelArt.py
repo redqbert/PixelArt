@@ -13,6 +13,7 @@ rect_raton = pygame.Rect(0,0,5,5) #el rect que sigue al raton
 fuente = pygame.font.SysFont("Calibri", 17) #Tipo de fuente para el texto
 
 gris = (220,220,220)
+gris_oscuro = (180, 180, 180)
 amarillo = (255,242,0 )
 celeste = (122,191,236)
 grispintura = (225,225,255)
@@ -50,6 +51,9 @@ def generador_matriz():
             matriz_rects[fila].append(rect) #Rectangulos del canvas
     return matriz,matriz_rects
 
+
+    
+
 # Clases
 
 class Editor():
@@ -60,7 +64,7 @@ class Editor():
     estilo_imagen = ""
     archivo_en_uso = ""
     nombre_archivo = ""
-    numero_de_archivos = 0
+    numero_de_archivos = 1
 
     #Falta agregar metodos
 
@@ -70,7 +74,7 @@ class Editor():
         self.estilo_imagen = estilo_imagen
         self.archivo_en_uso = archivo_en_uso
         self.nombre_archivo = "Epitome_del_arte_"
-        self.numero_de_archivos = 0
+        self.numero_de_archivos = numero_de_archivos
 
 
     def estado_en_ejecucion(self):
@@ -84,37 +88,36 @@ class Editor():
             pass
 
     def crear_archivos(self):
+
         nombre = (self.nombre_archivo + str(self.numero_de_archivos))+".txt" #Crea un nombre nuevo con los parametros guardador y un nuevo nombre
         open(nombre, 'w') #Crea un archivo
         self.archivo_en_uso = nombre #Cambia el nombre guardado
-        self.numero_de_archivos += 1 
     
     def guardar_archivo(self):
-        if not self.archivo_en_uso == "Epitome_del_arte_": #Verifica si ya se modifico que nombre original con la creacion de un archivo de texto
-            nombre = self.archivo_en_uso
-            with open(nombre, 'w') as old_archivo:
+        if not self.archivo_en_uso == "": #Verifica si ya se modifico que nombre original con la creacion de un archivo de texto
+            with open(self.archivo_en_uso, 'w') as old_archivo:
                 pass
-            nombre.write(self.matriz)
-#-------------------------------------------------------------------------------------------------------!           
-#                                                                                                       !
-#Podrias modificar la matriz dentro de la clase Editor? De esa manera solo se escribe aqui y ya         !
-#                                                                                                       !
-#-------------------------------------------------------------------------------------------------------!
+            self.archivo_en_uso.write(self.matriz)
 
-    def acceder_archivos(self):
-        pass
+    #Lo planeado es que en la interfaz se elija el archivo que se quiere editar a base de numeros, para asi acceder a el
+    #Ejemplor, el archivo 2 seria "Epitome_del_arte_2.txt", solo cambiando el numero que acompaña al nombre por defecto para acceder a dicho archivo
+
+    def restar_guardados(self):
+        if self.numero_de_archivos > 1: #Comprueba que el archivo no sea igual a 0
+            self.numero_de_archivos -= 1 #Suma 1 al archivo que se quiere acceder
+
+    def cargar_archivo(self): #Incompleto
+        nombre = (self.nombre_archivo + str(self.numero_de_archivos))+".txt"
+
+    def sumar_guardados(self):
+        self.numero_de_archivos += 1 #Suma 1 al archivo que se quiere acceder
 
     def editar_imagen(self, x, y, valorid): #Cambia un valor de la matriz
         self.matriz[x][y] = valorid
-#######################################
-#                                     #
-#                                     #
-#                                     #
-# Clases van con nombre mayuscula     #
-#                                     #
-#                                     #
-#                                     #
-#######################################
+
+
+
+
 class Pincel:
     brocha = "brocha"
     borrador = False
@@ -182,28 +185,44 @@ for fila in colores:#cargar los colroes en pantalla
     objetos_colores.append(color)
 
 #Localizacion y medidas de los botones
-boton_guardar_archivo =  150,510,120,70
-boton_archivo_nuevo =  300,510,120,70
-boton_cargar_archivo =  450,510,120,70
+boton_guardar_archivo =  225,510,120,70
+boton_archivo_nuevo =  375,510,120,70
+
+
+cuadro_interfaz = 550, 96, 200, 100 
+cuadro_resta = 560, 106, 20, 20
+cuadro_carga = 590, 106, 100, 20
+cuadros_suma = 700, 106, 20, 20
+
 
 #Texto y fuente para los botones
 texto_guardar = fuente.render("Guardar archivo", True, blanco)
 texto_nuevo = fuente.render("Nuevo archivo", True, blanco)
-texto_cargar = fuente.render("Cargar archivo", True, blanco)
-
+texto_resta = fuente.render("-", True, blanco)
+texto_carga = fuente.render("Cargar Archivo", True, blanco)
+texto_suma = fuente.render("+", True, blanco)
+texto_archivo_a_cargar = fuente.render("", True, blanco)
 
 while jugar:
 
     #Rectangulos de los botones de guardar, crear un nuevo archivo y cargar
-    boton_guardar =  pygame.draw.rect(pantalla,gris, boton_guardar_archivo )
-    boton_nuevo = pygame.draw.rect(pantalla,gris, boton_archivo_nuevo )
-    boton_cargar = pygame.draw.rect(pantalla,gris, boton_cargar_archivo )
+    boton_guardar =  pygame.draw.rect(pantalla,gris_oscuro, boton_guardar_archivo )
+    boton_nuevo = pygame.draw.rect(pantalla,gris_oscuro, boton_archivo_nuevo )
+
+    #Botones para cargar archivos
+    interfaz_guardado = pygame.draw.rect(pantalla, gris, cuadro_interfaz)
+    boton_resta = pygame.draw.rect(pantalla, gris_oscuro, cuadro_resta)
+    boton_carga = pygame.draw.rect(pantalla, gris_oscuro, cuadro_carga)
+    boton_suma =  pygame.draw.rect(pantalla, gris_oscuro, cuadros_suma)
 
     #Implementacion del texto en los botones
-    pantalla.blit(texto_guardar,( 157,537 ))
-    pantalla.blit(texto_nuevo, ( 310, 537 ))
-    pantalla.blit(texto_cargar,( 460,537 ))
-    
+    pantalla.blit(texto_guardar,( 232,537 ))
+    pantalla.blit(texto_nuevo, ( 385, 537 ))
+    pantalla.blit(texto_resta,(565, 106))
+    pantalla.blit(texto_carga,(590, 106))
+    pantalla.blit(texto_suma,(705, 106))
+
+
     #Logica
     posicion_raton = pygame.mouse.get_pos()
     rect_raton.center = posicion_raton #colocar el Rectangulo para el raton encima del raton
@@ -231,8 +250,12 @@ while jugar:
                 Editor.guardar_archivo()
             if boton_nuevo.collidepoint(posicion_raton):
                 Editor.crear_archivos()
-            if boton_cargar.collidepoint(posicion_raton):
-                Editor.acceder_archivos()
+            if boton_resta.collidepoint(posicion_raton):
+                Editor.restar_guardados()
+            if boton_carga.collidepoint(posicion_raton):
+                Editor.cargar_archivo()
+            if boton_suma.collidepoint(posicion_raton):
+                Editor.sumar_guardados()
 
 
 
