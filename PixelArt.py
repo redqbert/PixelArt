@@ -46,9 +46,10 @@ def generador_matriz():
                                (tamaño_cuadros)*columna+comienzo_dibujar_cuadrosy, 
                                tamaño_cuadros, 
                                tamaño_cuadros) 
-            matriz_rects[fila].append(rect) #Rectangulos del canvas
+            matriz_rects[fila].append(rect) #rectangulos del canvas
     return matriz,matriz_rects
 
+#se pasa de filas a columnas 
 def trasponer_matriz(matriz):
     filas = len(matriz)
     columnas = len(matriz[0])
@@ -63,15 +64,12 @@ def trasponer_matriz(matriz):
 
     return matriz_transpuesta
 
-
+#Rotar izquierda la matriz
 def trasponer_con_cambio_orden(matriz):
-
   filas = len(matriz)
   columnas = len(matriz[0])
-
   # crear una nueva matriz
   matriz_transpuesta = [[0 for _ in range(filas)] for _ in range(columnas)]
-
   # recorrer matriz original en orden inverso de columnas
   for i in range(columnas - 1, -1, -1):
     # recorrer las filas de la columna actual
@@ -79,6 +77,47 @@ def trasponer_con_cambio_orden(matriz):
       matriz_transpuesta[filas - 1 - j][i] = matriz[j][i]
 
   return matriz_transpuesta
+
+def alto_contraste_matriz(matriz):
+  for fila in matriz:
+    for i in range(len(fila)):
+      #si el valor se encuentra entre 0 y 4 entonces se cambia por 1
+      if 0 <= fila[i] <= 4:
+        fila[i] = 1
+      #si el valor esta entre 5 y 9 se cambiar a 9
+      elif 5 <= fila[i] <= 9:
+        fila[i] = 9
+  return matriz
+
+#darle vuelta a los valores del id
+def revertir_matriz(matriz):
+
+  matriz_revertida = []
+  for row in matriz:
+    new_row = []
+    for value in row:
+      new_row.append(9 - value)
+    matriz_revertida.append(new_row)
+  return matriz_revertida
+
+
+# reorganizar columnas de la matriz
+def reflejo_matriz_hor(matriz):
+    matriz_reorganizada = []
+    num_columnas = len(matriz[0])
+    
+    for fila in matriz:
+        nueva_fila = [fila[i] for i in range(num_columnas - 1, -1, -1)]
+        matriz_reorganizada.append(nueva_fila)
+    
+    return matriz_reorganizada
+
+
+# invierte las filas de la matriz
+def reflejo_matriz_ver(matriz):
+    return matriz[::-1]
+
+
 
 # Clases
 
@@ -197,9 +236,30 @@ class Editor():
         self.matriz = trasponer_con_cambio_orden(self.matriz)
         print(self.matriz)
         self.cargar_imagen()
+    
+    def alto_contraste(self):
+        pantalla.fill((245,245,245))
+        self.matriz = alto_contraste_matriz(self.matriz)
+        self.mostrar_matriz()
+
+    def negativo(self):
+        pantalla.fill((245,245,245))
+        self.matriz = revertir_matriz(self.matriz)
+        self.cargar_imagen()
+    
+    def reflejo_hor(self):
+        pantalla.fill((245,245,245))
+        self.matriz = reflejo_matriz_hor(self.matriz)
+        self.cargar_imagen()
+
+    def reflejo_ver(self):
+        pantalla.fill((245,245,245))
+        print("hola mundo")
+        self.matriz = reflejo_matriz_ver(self.matriz)
+        self.cargar_imagen()
+
+
             
-
-
 class Pincel:
     brocha = "brocha"
     borrador = False
@@ -273,7 +333,7 @@ class Iconos:
 ascii_art=[]
 
 for numero in range(0,10):
-    imagenasciiart = pygame.image.load ( f"numerica/{numero}.png" )
+    imagenasciiart = pygame.image.load ( f"asciiart/{numero}.png" )
     imagenasciiart = pygame.transform.scale( imagenasciiart , ( tamaño_cuadros , tamaño_cuadros ) )
     imagenasciiart_rect =  imagenasciiart.get_rect()
 
@@ -306,8 +366,15 @@ for fila in colores:#cargar los colroes en pantalla
 
 # imagen,posicionx,posisicony,tamaño,funcion
 iconos=[
-    ["iconos/rotar_izq.png",20,450,35,"rotar_izq"],
-    ["iconos/rotar_der.png",20,500,35,"rotar_der"]
+    ["iconos/rotar_izq.png",20,250,40,"rotar_izq"],
+    ["iconos/rotar_der.png",20,300,40,"rotar_der"],
+    ['numeros/0.png',20,350,40,'matriz_num'],
+    ['asciiart/9.png',20,400,40,'matriz_ascii'],
+    ['iconos/contraste.png',20,450,40,'alto_contraste'],
+    ['iconos/negativo.jpg',20,500,40,'negative'],
+    ["iconos/borrador.png",20,550,40,"borrar"],
+    ["iconos/ref_hor.png",20,600,40,"ref_hor"],
+    ["iconos/ref_vert.png",20,650,40,"ref_vert"],
 ]
 
 iconos_objetos = []
@@ -352,19 +419,33 @@ while jugar:
                         pygame.draw.rect(pantalla,eval(color_seleccionado),columna)#pinta del color el cuadro que colisiona con el click del raton
                         lienzo.editar_imagen(numcolumna,numfila,id_seleccionado)#modifica la matriz de 0 con el id correspodiente al color
                         print(lienzo.matriz)#ver matriz
-            
+                        estado = 'pintar en lienzo'
             for elemento in objetos_colores:# Colision para la seleccion de color con raton
                 if rect_raton.colliderect( elemento.devolver_rect() ): #si se selecciona
                     color_seleccionado = elemento.color #Variable global color_seleccionado cambia al color que se selecciono,ver lista objetos colores
                     id_seleccionado = elemento.id #Variable global id_seleccionado cambia al id del color que se selecciono
-            
+            #parte de funciones de botones
             for elemento in iconos_objetos:
                 if rect_raton.colliderect(elemento.rect_icono):
-                    if elemento.funcion=="rotar_izq":
+                    if elemento.funcion == "rotar_izq":
                         lienzo.rotar_izquierda_matriz()
-                    elif elemento.funcion=="rotar_der":
+                    elif elemento.funcion == "rotar_der":
                         lienzo.rotar_derecha_matriz()
-
+                    elif elemento.funcion == 'matriz_num':
+                        lienzo.mostrar_matriz()
+                    elif elemento.funcion == 'matriz_ascii':
+                        lienzo.ascii_art()
+                    elif elemento.funcion == "alto_contraste":
+                        lienzo.alto_contraste()
+                    elif elemento.funcion == "negative":
+                        lienzo.negativo()
+                    elif elemento.funcion == "borrar":
+                        color_seleccionado = "blanco"
+                        id_seleccionado = 0
+                    elif elemento.funcion == "ref_hor":
+                        lienzo.reflejo_hor()
+                    elif elemento.funcion == "ref_vert":
+                        lienzo.reflejo_ver()
                     
 
             #Interacciones con los botones de guardar, cargar y crear
