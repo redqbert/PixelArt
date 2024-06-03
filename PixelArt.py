@@ -103,18 +103,19 @@ def trasponer_matriz(matriz):
     return matriz_transpuesta
 
 #Rotar izquierda la matriz
-def trasponer_con_cambio_orden(matriz):
-  filas = len(matriz)
-  columnas = len(matriz[0])
-  # crear una nueva matriz
-  matriz_transpuesta = [[0 for _ in range(filas)] for _ in range(columnas)]
-  # recorrer matriz original en orden inverso de columnas
-  for i in range(columnas - 1, -1, -1):
-    # recorrer las filas de la columna actual
-    for j in range(filas):
-      matriz_transpuesta[filas - 1 - j][i] = matriz[j][i]
 
-  return matriz_transpuesta
+def convertir_columnas_a_filas(matriz):
+    filas = len(matriz)
+    columnas = len(matriz[0])
+    
+    matriz_resultante = []
+    for j in range(columnas - 1, -1, -1): #ir en las columnas pero hacia atras
+        nueva_fila = []
+        for i in range(filas):  # ir en las filas en orden normal
+            nueva_fila.append(matriz[filas - i - 1][j])  # para invertir el orden de las filas
+        matriz_resultante.append(nueva_fila)
+    
+    return matriz_resultante
 
 def alto_contraste_matriz(matriz):
   for fila in matriz:
@@ -212,23 +213,27 @@ class Editor():
             archivo.write(matriz_str)
 
     def cargar_matriz(self):
-        # abrir archivo
-        with open(self.nombre_archivo+".txt", "r") as archivo:
+        # Abrir archivo
+        with open(self.nombre_archivo + ".txt", "r") as archivo:
             datos_matriz = archivo.read()
-        # convertir a matriz
+        # Convertir a matriz
         filas = datos_matriz.split("\n")
+        longitud_fila_referencia = len(filas[0].split(" "))  # Longitud de la primera fila
         matriz_cargada = []
         for fila in filas:
             columna_str = fila.split(" ")
             columna_num = []
-            for elemento in columna_str:
-                # quitarse errores de encima
-                try:
-                    elemento_num = int(elemento)
-                except ValueError:
-                    elemento_num = 0  # para casos en los que hay error se pone un 0
-                columna_num.append(elemento_num)
-            matriz_cargada.append(columna_num)
+            # Verificar longitud de fila
+            if len(columna_str) == longitud_fila_referencia:
+                for elemento in columna_str:
+                    try:
+                        elemento_num = int(elemento)
+                    except ValueError:
+                        pass
+                    columna_num.append(elemento_num)
+            # agregar fila solo si tiene la longitud correcta
+            if columna_num:
+                matriz_cargada.append(columna_num)
         # actualizar la matriz del objeto
         self.matriz = matriz_cargada
 
@@ -278,7 +283,7 @@ class Editor():
                 
     def rotar_izquierda_matriz(self):
         pantalla.fill((245,245,245))
-        self.matriz = trasponer_con_cambio_orden(self.matriz)
+        self.matriz = convertir_columnas_a_filas(self.matriz)
         self.cargar_imagen()
     
     def alto_contraste(self):
@@ -299,6 +304,7 @@ class Editor():
     def reflejo_ver(self):
         pantalla.fill((245,245,245))
         self.matriz = reflejo_matriz_ver(self.matriz)
+        print(self.matriz)
         self.cargar_imagen()
     
     def actualizar_rects_nuevos(self):
@@ -396,7 +402,6 @@ iconos=[
     ['iconos/negativo.jpg',20,470,40,'negative'],
     ["iconos/borrador.png",20,520,40,"borrar"],
     ["iconos/ref_hor.png",20,570,40,"ref_hor"],
-    ["iconos/ref_vert.png",20,620,40,"ref_vert"],
     ["iconos/ref_vert.png",20,620,40,"ref_vert"],
     ["iconos/zoomin.jpg",750,320,40,"zoom"],
     ["iconos/zoomout.png",750,370,40,"zoomout"],
