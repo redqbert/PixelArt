@@ -213,7 +213,7 @@ class Editor():
 
     def cargar_matriz(self):
         # abrir archivo
-        with open(self.nombre_archivo, "r") as archivo:
+        with open(self.nombre_archivo+".txt", "r") as archivo:
             datos_matriz = archivo.read()
         # convertir a matriz
         filas = datos_matriz.split("\n")
@@ -400,7 +400,8 @@ iconos=[
     ["iconos/ref_vert.png",20,620,40,"ref_vert"],
     ["iconos/zoomin.jpg",750,320,40,"zoom"],
     ["iconos/zoomout.png",750,370,40,"zoomout"],
-    ["iconos/cerrar.png",750,420,40,"cerrar"]
+    ["iconos/cerrar.png",750,420,40,"cerrar"],
+    ["iconos/guardar.png",750,470,40,"guardar"]
 ]
 
 
@@ -448,7 +449,7 @@ while jugar:
                         elif elemento.funcion == "cargar":
                             cargar_archivo=nombre()
                             lienzo = Editor("", "Default",cargar_archivo,ascii_art)
-                            lienzo.cargar_imagen()
+                            lienzo.cargar_matriz()
                             menu=False
 
         for elemento in menu_iconos:
@@ -501,7 +502,10 @@ while jugar:
                             lienzo.cargar_imagen()
                             lienzo.actualizar_rects_nuevos()
                         elif elemento.funcion == "cerrar":
-                            estado="menu"
+                            menu=True
+                        elif elemento.funcion == "guardar":
+                            lienzo.guardar_archivo()
+                            print("hola")
 
         #generar objetos
         for elemento in objetos_colores: 
