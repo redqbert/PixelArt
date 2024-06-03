@@ -1,15 +1,16 @@
 #Importar bibliotecas
 import pygame
-
+import pygame_gui
 pygame.init()
 
 # Area variables globales
-tamaño_cuadros = 16 #Pixeles c/u
-comienzo_dibujar_cuadrosx = tamaño_cuadros * 6 #Lugar donde se empiezan a generar los cuadros x
+tamaño_cuadros = 7 #Pixeles c/u
+comienzo_dibujar_cuadrosx = tamaño_cuadros * 15 #Lugar donde se empiezan a generar los cuadros x
 comienzo_dibujar_cuadrosy = tamaño_cuadros * 3 #Lugar donde se empiezan a generar los cuadros y 
-rect_raton = pygame.Rect(0,0,5,5) #el rect que sigue al raton
-
+rect_raton = pygame.Rect(0,0,2,2) #el rect que sigue al raton
+tamaño_matriz=90
 fuente = pygame.font.SysFont("Calibri", 17) #Tipo de fuente para el texto
+menu=True
 
 gris = (220,220,220)
 amarillo = (255,242,0 )
@@ -27,20 +28,30 @@ id_seleccionado = 0
 
 estado = 'pintar en lienzo' #Trabajar por estados para mas comodidad
 
-pantalla = pygame.display.set_mode((1280, 720)) 
+pantalla = pygame.display.set_mode((1000, 720)) 
+
 clock = pygame.time.Clock()
 
 jugar = True # Variable para determinar cuando se cierra la ventana
+
+
+manager = pygame_gui.UIManager((1600, 900))
+
+text_input = pygame_gui.elements.UITextEntryLine(relative_rect=pygame.Rect((350, 275), (900, 50)), manager=manager,
+                                               object_id='#main_text_entry')
+
+
+
 
 # Area para funciones 
 
 def generador_matriz():
     matriz = []
     matriz_rects=[]
-    for fila in range(0,30):
+    for fila in range(0,tamaño_matriz):
         matriz.append([])
         matriz_rects.append([])
-        for columna in range(0,30):
+        for columna in range(0,tamaño_matriz):
             matriz[fila].append(0) #Este es el relleno de todos los elementos de la matriz de 0
             rect = pygame.Rect((tamaño_cuadros)*fila+comienzo_dibujar_cuadrosx,
                                (tamaño_cuadros)*columna+comienzo_dibujar_cuadrosy, 
@@ -48,6 +59,33 @@ def generador_matriz():
                                tamaño_cuadros) 
             matriz_rects[fila].append(rect) #rectangulos del canvas
     return matriz,matriz_rects
+
+def actualizar_rects(matriz):
+    matriz_rects=[]
+    for fila in range(0,len(matriz)-1):
+        matriz_rects.append([])
+        for columna in range(0,len(matriz)-1):
+            rect = pygame.Rect((tamaño_cuadros)*fila+comienzo_dibujar_cuadrosx,
+                               (tamaño_cuadros)*columna+comienzo_dibujar_cuadrosy, 
+                               tamaño_cuadros, 
+                               tamaño_cuadros) 
+            matriz_rects[fila].append(rect) #rectangulos del canvas
+    return matriz_rects
+
+def actualizar_imagenes():
+    
+    for numero in range(0,10):
+        imagenasciiart = pygame.image.load ( f"asciiart/{numero}.png" )
+        imagenasciiart = pygame.transform.scale( imagenasciiart , ( tamaño_cuadros , tamaño_cuadros ) )
+        imagenasciiart_rect =  imagenasciiart.get_rect()
+
+        imagennumerica = pygame.image.load ( f"numeros/{numero}.png" )
+        imagennumerica = pygame.transform.scale( imagennumerica , ( tamaño_cuadros , tamaño_cuadros ) )
+        imagennumerica_rect = imagennumerica.get_rect()
+
+        imagen = ( imagenasciiart , imagenasciiart_rect,numero,imagennumerica,imagennumerica_rect )
+        ascii_art.append ( imagen )
+
 
 #se pasa de filas a columnas 
 def trasponer_matriz(matriz):
@@ -100,7 +138,6 @@ def revertir_matriz(matriz):
     matriz_revertida.append(new_row)
   return matriz_revertida
 
-
 # reorganizar columnas de la matriz
 def reflejo_matriz_hor(matriz):
     matriz_reorganizada = []
@@ -112,10 +149,27 @@ def reflejo_matriz_hor(matriz):
     
     return matriz_reorganizada
 
-
 # invierte las filas de la matriz
 def reflejo_matriz_ver(matriz):
     return matriz[::-1]
+
+def nombre():
+    while True:
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                
+            if (evento.type == pygame_gui.UI_TEXT_ENTRY_FINISHED and
+                evento.ui_object_id == '#main_text_entry'):
+                return evento.text
+            
+            manager.process_events(evento)
+        
+        manager.update(clock.tick(60)/1000)
+
+        manager.draw_ui(pantalla)
+
+        pygame.display.update()
 
 
 
@@ -126,21 +180,14 @@ class Editor():
     matriz,matriz_rects = generador_matriz() #Matriz
     creador = ""
     estado_programa = ""
-    estilo_imagen = ""
-    archivo_en_uso = ""
     nombre_archivo = ""
-    numero_de_archivos = 0
     ascii = 0
     #Falta agregar metodos
-    def __init__(self, creador, estado_programa, estilo_imagen, archivo_en_uso, nombre_archivo, numero_de_archivos,ascii):
+    def __init__(self, creador, estado_programa, nombre_archivo,ascii):
         self.creador = creador
         self.estado_programa = estado_programa
-        self.estilo_imagen = estilo_imagen
-        self.archivo_en_uso = archivo_en_uso
         self.nombre_archivo = nombre_archivo
-        self.numero_de_archivos = 0
         self.ascii = ascii
-
     def estado_en_ejecucion(self):
         if self.estado_programa == "Creado":
             pass
@@ -150,13 +197,11 @@ class Editor():
             pass
 
     def crear_archivos(self):
-        nombre = (self.nombre_archivo + str(self.numero_de_archivos))+".txt" #Crea un nombre nuevo con los parametros guardador y un nuevo nombre
+        nombre = (self.nombre_archivo)+".txt" #Crea un nombre nuevo con los parametros guardador y un nuevo nombre
         open(nombre, 'w') #Crea un archivo
-        self.archivo_en_uso = nombre #Cambia el nombre guardado
-        self.numero_de_archivos += 1 
     
     def guardar_archivo(self):
-        nombre = self.archivo_en_uso
+        nombre = self.nombre_archivo+".txt"
         # Convierte la matriz a una cadena de texto
         matriz_str = ""
         for fila in self.matriz:
@@ -168,7 +213,7 @@ class Editor():
 
     def cargar_matriz(self):
         # abrir archivo
-        with open("Epitome_del_arte_0.txt", "r") as archivo:
+        with open(self.nombre_archivo, "r") as archivo:
             datos_matriz = archivo.read()
         # convertir a matriz
         filas = datos_matriz.split("\n")
@@ -205,7 +250,7 @@ class Editor():
                                  gris,
                                  (tamaño_cuadros*fila+comienzo_dibujar_cuadrosx,tamaño_cuadros*columna+comienzo_dibujar_cuadrosy,tamaño_cuadros,tamaño_cuadros),
                                  1)
-        
+    
     def mostrar_matriz(self):#mostrar la matriz numerica en pantalla
         pantalla.fill((245,245,245))
         for fila in range(0, len( self.matriz )-1 ):     #Numero de cuadros en el eje x
@@ -234,7 +279,6 @@ class Editor():
     def rotar_izquierda_matriz(self):
         pantalla.fill((245,245,245))
         self.matriz = trasponer_con_cambio_orden(self.matriz)
-        print(self.matriz)
         self.cargar_imagen()
     
     def alto_contraste(self):
@@ -254,32 +298,12 @@ class Editor():
 
     def reflejo_ver(self):
         pantalla.fill((245,245,245))
-        print("hola mundo")
         self.matriz = reflejo_matriz_ver(self.matriz)
         self.cargar_imagen()
+    
+    def actualizar_rects_nuevos(self):
+        self.matriz_rects = actualizar_rects(self.matriz)
 
-
-            
-class Pincel:
-    brocha = "brocha"
-    borrador = False
-    zoom_in = False
-    zoom_out = False
-    def __init__(self, brocha, borrador, zoom_in, zoom_out):
-        self.brocha = brocha
-        self.borrador =  borrador
-        self.zoom_in = zoom_in
-        self.zoom_out = zoom_out
-
-    def interruptor_borrar(self):
-        self.borrador = not self.borrador
-        if self.borrador == False:
-            brocha = "Brocha"
-        else:
-            brocha = "Borrador"
-
-    def cambio_brocha(self):
-        pass
 
 class Color: #Genera los colores junto con su colision correspondiente con el raton
     imagen = ''
@@ -293,10 +317,10 @@ class Color: #Genera los colores junto con su colision correspondiente con el ra
     def __init__(self, imagen, id, tamaño_imagen,posicion_x,posicion_y,color):#Inicializador de la clase
         self.imagen = pygame.image.load(imagen)
         self.id = id 
-        self.tamaño_imagen = tamaño_imagen*tamaño_cuadros
-        self.imagen = pygame.transform.scale(self.imagen,(tamaño_imagen*tamaño_cuadros,tamaño_imagen*tamaño_cuadros))
-        self.posicion_x = posicion_x * tamaño_cuadros 
-        self.posicion_y = posicion_y * tamaño_cuadros 
+        self.tamaño_imagen = tamaño_imagen
+        self.imagen = pygame.transform.scale(self.imagen,(tamaño_imagen,tamaño_imagen))
+        self.posicion_x = posicion_x  
+        self.posicion_y = posicion_y  
         self.rect = pygame.Rect( self.posicion_x  , self.posicion_y, self.tamaño_imagen, self.tamaño_imagen  )
         self.color = color
 
@@ -344,19 +368,17 @@ for numero in range(0,10):
     imagen = ( imagenasciiart , imagenasciiart_rect,numero,imagennumerica,imagennumerica_rect )
     ascii_art.append ( imagen )
 
-lienzo = Editor("", "Default", "Default", "", "Epitome_del_arte_", 0,ascii_art)
-
 #Color parametros: nombre,id,tamanio,posicion x(se multiiplica por el tamanio del cuadro), posicion y
-colores = [['amarillo',2,2,1,2 ],
-           ['celeste',1,2,35,2],
-           ['gris',8,2,35,4],
-           ['morado',7,2,35,6],
-           ['naranja',3,2,35,8],
-           ['rojo',4,2,35,10],
-           ['rosado',5,2,1,4],
-           ['verde',6,2,1,6],
-           ['blanco',0,2,1,8],
-           ['negro',9,2,1,10]]
+colores = [['amarillo',2,40,20,20 ],
+           ['celeste',1,40,20,70],
+           ['gris',8,40,20,120],
+           ['morado',7,40,20,170],
+           ['naranja',3,40,750,20],
+           ['rojo',4,40,750,70],
+           ['rosado',5,40,750,120],
+           ['verde',6,40,750,170],
+           ['blanco',0,40,750,220],
+           ['negro',9,40,750,270]]
 
 objetos_colores=[]
 for fila in colores:#cargar los colroes en pantalla
@@ -366,113 +388,135 @@ for fila in colores:#cargar los colroes en pantalla
 
 # imagen,posicionx,posisicony,tamaño,funcion
 iconos=[
-    ["iconos/rotar_izq.png",20,250,40,"rotar_izq"],
-    ["iconos/rotar_der.png",20,300,40,"rotar_der"],
-    ['numeros/0.png',20,350,40,'matriz_num'],
-    ['asciiart/9.png',20,400,40,'matriz_ascii'],
-    ['iconos/contraste.png',20,450,40,'alto_contraste'],
-    ['iconos/negativo.jpg',20,500,40,'negative'],
-    ["iconos/borrador.png",20,550,40,"borrar"],
-    ["iconos/ref_hor.png",20,600,40,"ref_hor"],
-    ["iconos/ref_vert.png",20,650,40,"ref_vert"],
+    ["iconos/rotar_izq.png",20,220,40,"rotar_izq"],
+    ["iconos/rotar_der.png",20,270,40,"rotar_der"],
+    ['numeros/0.png',20,320,40,'matriz_num'],
+    ['asciiart/9.png',20,370,40,'matriz_ascii'],
+    ['iconos/contraste.png',20,420,40,'alto_contraste'],
+    ['iconos/negativo.jpg',20,470,40,'negative'],
+    ["iconos/borrador.png",20,520,40,"borrar"],
+    ["iconos/ref_hor.png",20,570,40,"ref_hor"],
+    ["iconos/ref_vert.png",20,620,40,"ref_vert"],
+    ["iconos/ref_vert.png",20,620,40,"ref_vert"],
+    ["iconos/zoomin.jpg",750,320,40,"zoom"],
+    ["iconos/zoomout.png",750,370,40,"zoomout"],
+    ["iconos/cerrar.png",750,420,40,"cerrar"]
 ]
+
 
 iconos_objetos = []
 for fila in iconos:
     icono = Iconos(fila[0],fila[1],fila[2],fila[3],fila[4])
     iconos_objetos.append(icono)
+#iconos para el menu
+menuiconos=[
+    ["menu/nuevo.png",400,250,200,"crearnuevo"],
+    ["menu/cargar.png",400,500,200,"cargar"]
+]
+fondomenu = pygame.image.load("menu/fondo_principal.jpg")
+fondomenu = pygame.transform.scale( fondomenu , ( 1000 , 720 ) )
+letras = pygame.image.load("menu/paintxel.png")
+letras = pygame.transform.scale( letras , ( 600 , 100 ) )
 
-boton_guardar_archivo =  150,510,120,70
-boton_archivo_nuevo =  300,510,120,70
-boton_cargar_archivo =  450,510,120,70
-
-#Texto y fuente para los botones
-texto_guardar = fuente.render("Guardar archivo", True, blanco)
-texto_nuevo = fuente.render("Nuevo archivo", True, blanco)
-texto_cargar = fuente.render("Cargar archivo", True, blanco)
+menu_iconos=[]
+for fila in menuiconos:
+    menuicono = Iconos(fila[0],fila[1],fila[2],fila[3],fila[4])
+    menu_iconos.append(menuicono)
 
 while jugar:
-
-    #Rectangulos de los botones de guardar, crear un nuevo archivo y cargar
-    boton_guardar =  pygame.draw.rect(pantalla,gris, boton_guardar_archivo )
-    boton_nuevo = pygame.draw.rect(pantalla,gris, boton_archivo_nuevo )
-    boton_cargar = pygame.draw.rect(pantalla,gris, boton_cargar_archivo )
-
-    #Implementacion del texto en los botones
-    pantalla.blit(texto_guardar,( 157,537 ))
-    pantalla.blit(texto_nuevo, ( 310, 537 ))
-    pantalla.blit(texto_cargar,( 460,537 ))
 
     #Logica
     posicion_raton = pygame.mouse.get_pos()
     rect_raton.center = posicion_raton #colocar el Rectangulo para el raton encima del raton
-    
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            jugar = False
+    if menu:
+        pantalla.blit(fondomenu,(0,0))
+        pantalla.blit(letras,(200,100) )
 
-        if event.type == pygame.MOUSEBUTTONDOWN: 
-            #Detecta colsion con algun cuadro de la matriz,luego guarda en la matriz el cuadro modificado con el respectivo id del color
-            for numfila,fila in enumerate(lienzo.matriz_rects) :
-                for numcolumna,columna in enumerate(fila):
-                    if rect_raton.colliderect(columna):
-                        pygame.draw.rect(pantalla,eval(color_seleccionado),columna)#pinta del color el cuadro que colisiona con el click del raton
-                        lienzo.editar_imagen(numcolumna,numfila,id_seleccionado)#modifica la matriz de 0 con el id correspodiente al color
-                        print(lienzo.matriz)#ver matriz
-                        estado = 'pintar en lienzo'
-            for elemento in objetos_colores:# Colision para la seleccion de color con raton
-                if rect_raton.colliderect( elemento.devolver_rect() ): #si se selecciona
-                    color_seleccionado = elemento.color #Variable global color_seleccionado cambia al color que se selecciono,ver lista objetos colores
-                    id_seleccionado = elemento.id #Variable global id_seleccionado cambia al id del color que se selecciono
-            #parte de funciones de botones
-            for elemento in iconos_objetos:
-                if rect_raton.colliderect(elemento.rect_icono):
-                    if elemento.funcion == "rotar_izq":
-                        lienzo.rotar_izquierda_matriz()
-                    elif elemento.funcion == "rotar_der":
-                        lienzo.rotar_derecha_matriz()
-                    elif elemento.funcion == 'matriz_num':
-                        lienzo.mostrar_matriz()
-                    elif elemento.funcion == 'matriz_ascii':
-                        lienzo.ascii_art()
-                    elif elemento.funcion == "alto_contraste":
-                        lienzo.alto_contraste()
-                    elif elemento.funcion == "negative":
-                        lienzo.negativo()
-                    elif elemento.funcion == "borrar":
-                        color_seleccionado = "blanco"
-                        id_seleccionado = 0
-                    elif elemento.funcion == "ref_hor":
-                        lienzo.reflejo_hor()
-                    elif elemento.funcion == "ref_vert":
-                        lienzo.reflejo_ver()
-                    
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                jugar = False    
+            if event.type == pygame.MOUSEBUTTONDOWN: 
 
-            #Interacciones con los botones de guardar, cargar y crear
+                for elemento in menu_iconos:    
+                    if rect_raton.colliderect( elemento.rect_icono ):
+                        if elemento.funcion == "crearnuevo":
+                            nuevo_archivo=nombre()
+                            lienzo = Editor("", "Default", nuevo_archivo,ascii_art)
+                            lienzo.crear_archivos()
+                            lienzo.guardar_archivo()
+                            menu=False
+                        elif elemento.funcion == "cargar":
+                            cargar_archivo=nombre()
+                            lienzo = Editor("", "Default",cargar_archivo,ascii_art)
+                            lienzo.cargar_imagen()
+                            menu=False
 
-            if boton_guardar.collidepoint(posicion_raton):
-                lienzo.mostrar_matriz()
-            if boton_nuevo.collidepoint(posicion_raton):
-                lienzo.crear_archivos()
-            if boton_cargar.collidepoint(posicion_raton):
-                estado = 'cargar_imagen'
-                lienzo.cargar_matriz()
+        for elemento in menu_iconos:
+            elemento.mostrar_icono()
 
-    #generar objetos
-    for elemento in objetos_colores: 
-        elemento.generar_cuadro()
+    else:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                jugar = False         
+            if event.type == pygame.MOUSEBUTTONDOWN: 
+                #Detecta colsion con algun cuadro de la matriz,luego guarda en la matriz el cuadro modificado con el respectivo id del color
+                for numfila,fila in enumerate(lienzo.matriz_rects) :
+                    for numcolumna,columna in enumerate(fila):
+                        if rect_raton.colliderect(columna):
+                            lienzo.editar_imagen(numcolumna,numfila,id_seleccionado)#modifica la matriz de 0 con el id correspodiente al color
+                            #print(lienzo.matriz)#ver matriz
+                            estado = 'pintar en lienzo'
+                for elemento in objetos_colores:# Colision para la seleccion de color con raton
+                    if rect_raton.colliderect( elemento.devolver_rect() ): #si se selecciona
+                        color_seleccionado = elemento.color #Variable global color_seleccionado cambia al color que se selecciono,ver lista objetos colores
+                        id_seleccionado = elemento.id #Variable global id_seleccionado cambia al id del color que se selecciono
+                #parte de funciones de botones
+                for elemento in iconos_objetos:
+                    if rect_raton.colliderect(elemento.rect_icono):
+                        if elemento.funcion == "rotar_izq":
+                            lienzo.rotar_izquierda_matriz()
+                        elif elemento.funcion == "rotar_der":
+                            lienzo.rotar_derecha_matriz()
+                        elif elemento.funcion == 'matriz_num':
+                            lienzo.mostrar_matriz()
+                        elif elemento.funcion == 'matriz_ascii':
+                            lienzo.ascii_art()
+                        elif elemento.funcion == "alto_contraste":
+                            lienzo.alto_contraste()
+                        elif elemento.funcion == "negative":
+                            lienzo.negativo()
+                        elif elemento.funcion == "borrar":
+                            color_seleccionado = "blanco"
+                            id_seleccionado = 0
+                        elif elemento.funcion == "ref_hor":
+                            lienzo.reflejo_hor()
+                        elif elemento.funcion == "ref_vert":
+                            lienzo.reflejo_ver()
+                        elif elemento.funcion == "zoom":
+                            tamaño_cuadros+=1
+                            lienzo.cargar_imagen()
+                            lienzo.actualizar_rects_nuevos()
+                        elif elemento.funcion == "zoomout":
+                            tamaño_cuadros-=1
+                            lienzo.cargar_imagen()
+                            lienzo.actualizar_rects_nuevos()
+                        elif elemento.funcion == "cerrar":
+                            estado="menu"
 
-    for elemento in iconos_objetos:
-        elemento.mostrar_icono()
-    
-    #Generador de cuadros de matriz en pantalla
-    if estado == 'pintar en lienzo':    
-        lienzo.cargar_imagen()
-        estado = ''
+        #generar objetos
+        for elemento in objetos_colores: 
+            elemento.generar_cuadro()
 
-    elif estado == 'cargar_imagen':
-        lienzo.cargar_imagen()
-        estado = ''
+        for elemento in iconos_objetos:
+            elemento.mostrar_icono()
+        #Generador de cuadros de matriz en pantalla
+        if estado == 'pintar en lienzo':    
+            lienzo.cargar_imagen()
+            estado = ''
+
+        elif estado == 'cargar_imagen':
+            lienzo.cargar_imagen()
+            estado = ''
 
     # Colocar en la pantalla el renderizado
     pygame.display.flip()    
