@@ -183,6 +183,7 @@ class Editor():
     estado_programa = ""
     nombre_archivo = ""
     ascii = 0
+    tamaño_cuadros=0
     #Falta agregar metodos
     def __init__(self, creador, estado_programa, nombre_archivo,ascii):
         self.creador = creador
@@ -309,6 +310,7 @@ class Editor():
     
     def actualizar_rects_nuevos(self):
         self.matriz_rects = actualizar_rects(self.matriz)
+
 
 
 class Color: #Genera los colores junto con su colision correspondiente con el raton
@@ -504,6 +506,7 @@ while jugar:
                             lienzo.actualizar_rects_nuevos()
                         elif elemento.funcion == "zoomout":
                             tamaño_cuadros-=1
+                            lienzo.tamaño_cuadros=tamaño_cuadros
                             lienzo.cargar_imagen()
                             lienzo.actualizar_rects_nuevos()
                         elif elemento.funcion == "cerrar":
