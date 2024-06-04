@@ -154,6 +154,7 @@ def reflejo_matriz_hor(matriz):
 def reflejo_matriz_ver(matriz):
     return matriz[::-1]
 
+#crea el entrador de datos
 def nombre():
     while True:
         for evento in pygame.event.get():
@@ -171,8 +172,6 @@ def nombre():
         manager.draw_ui(pantalla)
 
         pygame.display.update()
-
-
 
 # Clases
 
@@ -215,28 +214,33 @@ class Editor():
 
     def cargar_matriz(self):
         # Abrir archivo
-        with open(self.nombre_archivo + ".txt", "r") as archivo:
-            datos_matriz = archivo.read()
-        # Convertir a matriz
-        filas = datos_matriz.split("\n")
-        longitud_fila_referencia = len(filas[0].split(" "))  # Longitud de la primera fila
-        matriz_cargada = []
-        for fila in filas:
-            columna_str = fila.split(" ")
-            columna_num = []
-            # Verificar longitud de fila
-            if len(columna_str) == longitud_fila_referencia:
-                for elemento in columna_str:
-                    try:
-                        elemento_num = int(elemento)
-                    except ValueError:
-                        pass
-                    columna_num.append(elemento_num)
-            # agregar fila solo si tiene la longitud correcta
-            if columna_num:
-                matriz_cargada.append(columna_num)
-        # actualizar la matriz del objeto
-        self.matriz = matriz_cargada
+        try:
+            with open(self.nombre_archivo + ".txt", "r") as archivo:
+                datos_matriz = archivo.read()
+            # Convertir a matriz
+            filas = datos_matriz.split("\n")
+            longitud_fila_referencia = len(filas[0].split(" "))  # Longitud de la primera fila
+            matriz_cargada = []
+            for fila in filas:
+                columna_str = fila.split(" ")
+                columna_num = []
+                # Verificar longitud de fila
+                if len(columna_str) == longitud_fila_referencia:
+                    for elemento in columna_str:
+                        try:
+                            elemento_num = int(elemento)
+                        except ValueError:
+                            pass
+                        columna_num.append(elemento_num)
+                # agregar fila solo si tiene la longitud correcta
+                if columna_num:
+                    matriz_cargada.append(columna_num)
+            # actualizar la matriz del objeto
+            self.matriz = matriz_cargada
+            return True
+        except:
+            print('No existe el archivo')
+            return False
 
     def editar_imagen(self, x, y, valorid): #Cambia un valor de la matriz
         self.matriz[x][y] = valorid
@@ -311,8 +315,6 @@ class Editor():
     def actualizar_rects_nuevos(self):
         self.matriz_rects = actualizar_rects(self.matriz)
 
-
-
 class Color: #Genera los colores junto con su colision correspondiente con el raton
     imagen = ''
     tamaño_imagen=0
@@ -358,7 +360,6 @@ class Iconos:
         pantalla.blit(self.imagen,
                       (self.posicionx,self.posiciony),
                     )
-   
 
 # Iniciar objetos
 
@@ -456,8 +457,9 @@ while jugar:
                         elif elemento.funcion == "cargar":
                             cargar_archivo=nombre()
                             lienzo = Editor("", "Default",cargar_archivo,ascii_art)
-                            lienzo.cargar_matriz()
-                            menu=False
+                            encontro = lienzo.cargar_matriz()
+                            if encontro:
+                                menu=False
 
         for elemento in menu_iconos:
             elemento.mostrar_icono()
@@ -504,11 +506,13 @@ while jugar:
                             tamaño_cuadros+=1
                             lienzo.cargar_imagen()
                             lienzo.actualizar_rects_nuevos()
+                            actualizar_imagenes()
                         elif elemento.funcion == "zoomout":
                             tamaño_cuadros-=1
                             lienzo.tamaño_cuadros=tamaño_cuadros
                             lienzo.cargar_imagen()
                             lienzo.actualizar_rects_nuevos()
+                            actualizar_imagenes()
                         elif elemento.funcion == "cerrar":
                             menu=True
                         elif elemento.funcion == "guardar":
