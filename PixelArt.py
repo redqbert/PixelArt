@@ -189,13 +189,6 @@ class Editor():
         self.estado_programa = estado_programa
         self.nombre_archivo = nombre_archivo
         self.ascii = ascii
-    def estado_en_ejecucion(self):
-        if self.estado_programa == "Creado":
-            pass
-        elif self.estado_programa == "En proceso":
-            pass
-        elif self.estado_programa == "Terminado":
-            pass
 
     def crear_archivos(self):
         nombre = (self.nombre_archivo)+".txt" #Crea un nombre nuevo con los parametros guardador y un nuevo nombre
@@ -515,9 +508,9 @@ while jugar:
                             actualizar_imagenes()
                         elif elemento.funcion == "cerrar":
                             menu=True
+                            lienzo.estado_programa ='Finalizado'
                         elif elemento.funcion == "guardar":
                             lienzo.guardar_archivo()
-                            print("hola")
 
         #generar objetos
         for elemento in objetos_colores: 
