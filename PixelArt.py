@@ -243,17 +243,19 @@ class Editor():
         for fila in range(0, len( self.matriz )-1 ):     #Numero de cuadros en el eje x
             for columna in range( 0, len( self.matriz[0] )-1 ):     # Numero de cuadros en el eje y
                 for elemento in colores:
-                    if self.matriz[columna][fila] == elemento[1]:#elemento 1 es id
-                        pygame.draw.rect(pantalla,
-                                        eval(elemento[0]),#nombre del color
-                                        (tamaño_cuadros*fila+comienzo_dibujar_cuadrosx,tamaño_cuadros*columna+comienzo_dibujar_cuadrosy,tamaño_cuadros,tamaño_cuadros)
-                                        )
-                    else:
-                        pygame.draw.rect(pantalla,
-                                 gris,
-                                 (tamaño_cuadros*fila+comienzo_dibujar_cuadrosx,tamaño_cuadros*columna+comienzo_dibujar_cuadrosy,tamaño_cuadros,tamaño_cuadros),
-                                 1)
-    
+                    try:
+                        if self.matriz[columna][fila] == elemento[1]:#elemento 1 es id
+                            pygame.draw.rect(pantalla,
+                                            eval(elemento[0]),#nombre del color
+                                            (tamaño_cuadros*fila+comienzo_dibujar_cuadrosx,tamaño_cuadros*columna+comienzo_dibujar_cuadrosy,tamaño_cuadros,tamaño_cuadros)
+                                            )
+                        else:
+                            pygame.draw.rect(pantalla,
+                                    gris,
+                                    (tamaño_cuadros*fila+comienzo_dibujar_cuadrosx,tamaño_cuadros*columna+comienzo_dibujar_cuadrosy,tamaño_cuadros,tamaño_cuadros),
+                                    1)
+                    except:
+                        pass
     def mostrar_matriz(self):#mostrar la matriz numerica en pantalla
         pantalla.fill((245,245,245))
         for fila in range(0, len( self.matriz )-1 ):     #Numero de cuadros en el eje x
