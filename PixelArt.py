@@ -304,7 +304,6 @@ class Editor():
     def reflejo_ver(self):
         pantalla.fill((245,245,245))
         self.matriz = reflejo_matriz_ver(self.matriz)
-        print(self.matriz)
         self.cargar_imagen()
     
     def actualizar_rects_nuevos(self):
@@ -469,7 +468,6 @@ while jugar:
                     for numcolumna,columna in enumerate(fila):
                         if rect_raton.colliderect(columna):
                             lienzo.editar_imagen(numcolumna,numfila,id_seleccionado)#modifica la matriz de 0 con el id correspodiente al color
-                            #print(lienzo.matriz)#ver matriz
                             estado = 'pintar en lienzo'
                 for elemento in objetos_colores:# Colision para la seleccion de color con raton
                     if rect_raton.colliderect( elemento.devolver_rect() ): #si se selecciona
@@ -509,7 +507,7 @@ while jugar:
                             lienzo.actualizar_rects_nuevos()
                             actualizar_imagenes()
                         elif elemento.funcion == "cerrar":
-                            menu=True
+                            jugar=False
                             lienzo.estado_programa ='Finalizado'
                         elif elemento.funcion == "guardar":
                             lienzo.guardar_archivo()
